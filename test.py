@@ -146,6 +146,7 @@ def test_search_sentiment():
 
 if __name__ == "__main__":
 
+    """Tests features of the REST api"""
 
     #Testing connectivity
     test_connectivity()
@@ -154,17 +155,17 @@ if __name__ == "__main__":
     # the contents of the title and body fields,
     #
     #Matching documents, filters and other result data, should be returned in JSON format
-    #test_search()
+    test_search()
 
 
     #The user wants to be able to filter on sentiment 
     # (i.e only see docs that are negative (v), positive (p),
     # neutral (n)) or a combination of p,v,n
-    # test_search_sentiment()
+    test_search_sentiment()
 
 
     #The service should only return a maximum of 100 docs per response
     # But there should be a way to get the full result list by executing
     # several requests and paging through the results (see pagination)
-    #test_pagination()
+    test_pagination()
 
