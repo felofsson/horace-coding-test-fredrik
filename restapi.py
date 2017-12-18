@@ -4,7 +4,7 @@ from flask_restful import Resource, Api
 from flask import jsonify
 import requests
 
-import main
+import elastic_horace_coding_test
 
 app = Flask(__name__)
 api = Api(app)
@@ -27,10 +27,10 @@ class Search(Resource):
 
         # Parse sentiment
         if sentiment is not None:
-            if not(sentiment in ['n', 'p', 'v']):
+            if sentiment not in ['n', 'p', 'v']:
                 return requests.HTTPError(400)  # Wrong parameter send by client
 
-        res = main.es_search(search_str, from_=from_, size=size, sentiment=sentiment)
+        res = elastic_horace_coding_test.es_search(search_str, from_=from_, size=size, sentiment=sentiment)
 
         for hit in res['hits']['hits']:
             print(hit)
