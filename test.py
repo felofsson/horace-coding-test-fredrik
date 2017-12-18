@@ -134,6 +134,7 @@ def test_search():
     print("...(Summarizes to %s (body+title+both_body_tile))" % (matching_dict['body'] + matching_dict['title'] + matching_dict['both_body_title']))
     print("\n")
 
+
 def test_search_sentiment():
 
     search_str = "volvo xc90"  # Has to match more than total size
@@ -152,6 +153,7 @@ def test_search_sentiment():
         print("...sentiment: %s - Matched total of %s documents" %  (sentiment, len(data['hits']['hits'])))
 
     print("\n")
+
 
 if __name__ == "__main__":
 
@@ -177,4 +179,3 @@ if __name__ == "__main__":
     # But there should be a way to get the full result list by executing
     # several requests and paging through the results (see pagination)
     test_pagination()
-
