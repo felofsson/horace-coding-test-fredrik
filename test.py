@@ -49,21 +49,51 @@ def test_pagination():
     print("...%s of %s equal when testing pagination." % (count, total_size))
 
 
+def test_search():
+
+    print("Testing search with several keywords. Should be present in either BODY, TITLE or both.")
+    search_str = "volvo xc90"  # Has to match more than total size
+
+    params = {'str': search_str, }
+    r = requests.get("http://127.0.0.1:5002/search", params=params)
+    data = r.json()
+
+    words_to_match = search_str.split()  # split by space
+
+    count = 0
+    matching_count = 0
+
+    for document in data['hits']['hits']:
+        count = count + 1
+        body_text = document['_source']['body']
+        title_text = document['_source']['title']
+
+        all_words_in_field = True  # default
+
+        for word in words_to_match:
+            if not (word in body_text.lower() or word in title_text.lower()):
+                all_words_in_field = False
+
+        if all_words_in_field:
+            matching_count += 1
+
+    print("...Total documents matched %s, of which %s contained %s in the BODY text, TITLE text or both." % (
+    count, matching_count, words_to_match))
+
+
 if __name__ == "__main__":
 
-    # 1
+    #
     # The user wants to be able to send in a query string that should be matched against
     # the contents of the title and body fields,
     #
     #Matching documents, filters and other result data, should be returned in JSON format
-
-
-
+    test_search()
 
 
 
     #The service should only return a maximum of 100 docs per response
     # But there should be a way to get the full result list by executing
     # several requests and paging through the results (see pagination)
-    test_pagination()
+    #test_pagination()
 
