@@ -63,10 +63,44 @@ def test_search():
     count = 0
     matching_count = 0
 
+
+    fields = ['body', 'title']
+    matching_dict = {}
+
+    matching_dict['body'] = 0
+    matching_dict['title'] = 0
+    matching_dict['both_body_title'] = 0
+    matching_dict['none'] = 0
+
     for document in data['hits']['hits']:
         count = count + 1
         body_text = document['_source']['body']
         title_text = document['_source']['title']
+
+        all_words_in_all_fields = True
+        res = {}
+        for field in fields:
+            res[field] = False
+            text = document['_source'][field]
+
+            all_words_in_field = True # assumption
+
+            for word in words_to_match:
+                if not(word.lower() in text.lower()):
+                    all_words_in_field = False
+
+            res[field] = all_words_in_field
+
+        if res['body'] and res['title']:
+            matching_dict['both_body_title'] += 1
+
+        elif res['body']:
+            matching_dict['body'] += 1
+        elif res['title']:
+            matching_dict['title'] += 1
+        else:
+            matching_dict['none'] += 1
+
 
         all_words_in_field = True  # default
 
@@ -77,8 +111,13 @@ def test_search():
         if all_words_in_field:
             matching_count += 1
 
+
+
     print("...Total documents matched %s, of which %s contained %s in the BODY text, TITLE text or both." % (
     count, matching_count, words_to_match))
+    print("...Distribution::")
+    print("...", matching_dict)
+    print("...(Summarizes to %s)" % (matching_dict['body'] + matching_dict['title'] + matching_dict['both_body_title']))
 
 
 if __name__ == "__main__":
