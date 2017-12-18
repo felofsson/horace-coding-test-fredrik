@@ -50,17 +50,3 @@ def es_search(search_str, from_=0, size=100, sentiment=None):
     return res
 
 
-if __name__ == "__main__":
-
-
-    d = es_search("volvo xc90", sentiment='p')
-
-    print(d['hits']['total'])
-
-    for hit in d['hits']['hits']:
-        print(hit)
-
-
-
-
-
