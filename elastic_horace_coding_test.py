@@ -30,11 +30,14 @@ def make_es_query(search_str, from_, size, sentiment):
     query_dict['size'] = size
     query_dict['from'] = from_
 
-    print(query_dict)
     return query_dict
 
 
 def es_search(search_str, from_=0, size=100, sentiment=None):
+    """Searches for search_str and returns the documents
+    matching in the ElasticSearch image.
+
+    See make_es_query for details about how the search is done."""
 
     from elasticsearch import Elasticsearch
 
