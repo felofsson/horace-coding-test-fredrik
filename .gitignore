@@ -1,0 +1,9 @@
+env/
+.idea/
+__pycache__/
+.DS_Store
+data.json
+docker-compose.yml
+Dockerfile
+mappings.json
+provision.sh
