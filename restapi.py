@@ -1,15 +1,14 @@
 from flask import Flask, request
 from flask_restful import Resource, Api
-# from sqlalchemy import create_engine
-# from json import dumps
 
 from flask import jsonify
+import requests
+
 import main
 
 app = Flask(__name__)
 api = Api(app)
 
-import requests
 
 class Search(Resource):
     def get(self):
@@ -26,10 +25,10 @@ class Search(Resource):
         if size is None or int(size) < 1:
             size = 100
 
+        # Parse sentiment
         if sentiment is not None:
-            if len(sentiment) == 1:
-                if sentiment not in ['n', 'p', 'v']:
-                    return requests.HTTPError(400) # Wrong parameter send by client
+            if not(sentiment in ['n', 'p', 'v']):
+                return requests.HTTPError(400)  # Wrong parameter send by client
 
         res = main.es_search(search_str, from_=from_, size=size, sentiment=sentiment)
 
