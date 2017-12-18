@@ -13,17 +13,25 @@ This project is based on the problem formulation given in the[Meltwater Horace C
 4. The user wants to be able to get back the *top N values from the keyPhrases field* for the documents matching the query, so he or she can make a word cloud.  
 
 
+# Implementation and result
+A Restful API has been implemented in Python, using Flask API and a Python module for Elastic search.
 
-Requirement 1 and 3 have been fullfilled. Requirement 3 is partially fulfilled.
+*Results*: 
+- [x] Requirement 1 
+- [x] Requirement 2 (partially)
+- [x] Requirement 3
+
+Requirement 4 has not been fulfilled. 
 
 # Installation 
 1. Install and configure the Docker container according to the orginal project
 2. Clone/download this project
 3. Install its dependencies found in requirements.txt (perferably in a virtual environment)
-4. Run test.py to evaluate.
+4. Start the Flask application by running ```restapi.py```
+4. Run test.py to evaluate. 
 
 # Usage
-The RESTapi has one end-point:
+This REST api has one end-point:
 ```localhost:5002/search```, hereby shortend ```/search```
 
 With parameters 
@@ -42,11 +50,11 @@ E. g.
 Returns a JSON-object that matches the string "xc90". The matching documents from the search is stored in the JSON object ```data['hits']['hits']```. It is also accompanied with META-data from ElasticSearch (such as number of total hits).
 (By default, the maximum number of hits are 100 unless specified otherwise by the ```size```-parameter) 
 
-##Example with sentiment
+###Example with sentiment
 The request ```/search?volvo&sentiment=p``` returns documents matching "volvo" AND has a positive sentiment. See below "A note on matching".
 
 
-##Example with pagination
+###Example with pagination
 
 The request ```/search?str=volvo&size=10&from=0``` yields the first 10 matching documents to "volvo".
 To retrieve the remaining matching documents (11-20), make the request ```/search?str=volvo&size=10&from=10```. 
