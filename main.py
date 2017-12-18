@@ -39,7 +39,7 @@
 
 def make_es_query(search_str):
     """Returns ElasticSearch query for search_str,
-        Searches fields
+        Matches fields
             'title'
             'body'
 
@@ -63,37 +63,31 @@ def make_es_query(search_str):
         query_dict['query']['bool']['should'].append({'match': {field: {'query': search_str,
                                                                         'operator': 'and'}}})
 
-    print(query_dict)
+    # print(query_dict)
     return query_dict
 
 
-def es_search():
+def es_search(search_str):
 
     from elasticsearch import Elasticsearch
 
     es = Elasticsearch(['localhost:9200/'])
 
-
-    query_dict = make_es_query("volvo xc90")
-
+    query_dict = make_es_query(search_str)
 
     res = es.search(index="documents", body=query_dict)
 
-
-    # 528 volvo titlar
-    # 209 volvo body
-
-    print("Hits: %d" % res['hits']['total'])
-    #print(type(res))
-    #print("%d documents found" % res['hits']['total'])
-    #for doc in res['hits']['hits']:
-     #  print("%s), %s, %s" % (doc['_id'], doc['_source']['title'], doc['_source']['body']))
+    return res
 
 
 if __name__ == "__main__":
-    print(1+1)
-    uri = "localhost:9200/documents"
 
 
-    d = es_search()
+    d = es_search("volvo xc90")
+
+    for hit in d['hits']['hits']:
+        print(hit)
+    
+
+
 
