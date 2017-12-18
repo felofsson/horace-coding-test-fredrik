@@ -52,7 +52,7 @@ def test_pagination():
 
 def test_search():
 
-    print("Testing search with several keywords. Should be present in either BODY, TITLE or both.")
+    print("Testing search with several keywords. Should be present in either BODY, TITLE or both.\n")
     search_str = "volvo xc90"  # Has to match more than total size
 
     params = {'str': search_str, }
@@ -130,14 +130,13 @@ def test_search_sentiment():
 
     for sentiment in sentiment_list:
 
-        params = {'str': search_str, 'sentiment': sentiment, 'size': 10000}
+        params = {'str': search_str, 'sentiment': sentiment, 'size': 100}
         r = requests.get("http://127.0.0.1:5002/search", params=params)
+
         data = r.json()
 
 
-        print("...sentiment: %s - Matched total of %s documents" %  (sentiment, len(data['hits']['hits'])))
-        #for document in data['hits']['hits']:
-         #   print(document['_source']['sentiment'])
+        print("...sentiment: %s - Matched total of %s documents\n" %  (sentiment, len(data['hits']['hits'])))
 
 
 if __name__ == "__main__":
@@ -147,7 +146,7 @@ if __name__ == "__main__":
     # the contents of the title and body fields,
     #
     #Matching documents, filters and other result data, should be returned in JSON format
-    #test_search()
+    test_search()
 
 
     #The user wants to be able to filter on sentiment 
@@ -156,18 +155,8 @@ if __name__ == "__main__":
     test_search_sentiment()
 
 
-   # data = main.es_search("volvo xc90", sentiment='p', size=1000)
-
-    #print(len(data['hits']['hits']))
-    #for document in data['hits']['hits']:
-     #   print(document['_source']['sentiment'], document['_source']['title']) # document['_source']['body']
-
-
-
-
-
     #The service should only return a maximum of 100 docs per response
     # But there should be a way to get the full result list by executing
     # several requests and paging through the results (see pagination)
-    #test_pagination()
+    test_pagination()
 
