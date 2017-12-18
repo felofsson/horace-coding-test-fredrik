@@ -1,6 +1,7 @@
 
 
 import requests
+import main
 
 
 def test_pagination():
@@ -120,6 +121,25 @@ def test_search():
     print("...(Summarizes to %s)" % (matching_dict['body'] + matching_dict['title'] + matching_dict['both_body_title']))
 
 
+def test_search_sentiment():
+
+    search_str = "volvo xc90"  # Has to match more than total size
+    print("Testing search for a specific sentiment (search_str = %s)" % search_str)
+
+    sentiment_list = ['n','p','v', None]
+
+    for sentiment in sentiment_list:
+
+        params = {'str': search_str, 'sentiment': sentiment, 'size': 10000}
+        r = requests.get("http://127.0.0.1:5002/search", params=params)
+        data = r.json()
+
+
+        print("...sentiment: %s - Matched total of %s documents" %  (sentiment, len(data['hits']['hits'])))
+        #for document in data['hits']['hits']:
+         #   print(document['_source']['sentiment'])
+
+
 if __name__ == "__main__":
 
     #
@@ -127,7 +147,22 @@ if __name__ == "__main__":
     # the contents of the title and body fields,
     #
     #Matching documents, filters and other result data, should be returned in JSON format
-    test_search()
+    #test_search()
+
+
+    #The user wants to be able to filter on sentiment 
+    # (i.e only see docs that are negative (v), positive (p),
+    # neutral (n)) or a combination of p,v,n
+    test_search_sentiment()
+
+
+   # data = main.es_search("volvo xc90", sentiment='p', size=1000)
+
+    #print(len(data['hits']['hits']))
+    #for document in data['hits']['hits']:
+     #   print(document['_source']['sentiment'], document['_source']['title']) # document['_source']['body']
+
+
 
 
 

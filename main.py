@@ -1,4 +1,4 @@
-def make_es_query(search_str, from_, size):
+def make_es_query(search_str, from_, size, sentiment):
     """Returns ElasticSearch query for search_str,
         Matches fields
             'title'
@@ -24,20 +24,23 @@ def make_es_query(search_str, from_, size):
         query_dict['query']['bool']['should'].append({'match': {field: {'query': search_str,
                                                                         'operator': 'and'}}})
 
+    if sentiment is not None:
+        query_dict['query']['bool']['filter'] = {"match": {"sentiment": sentiment}}
+
     query_dict['size'] = size
     query_dict['from'] = from_
 
-    # print(query_dict)
+    print(query_dict)
     return query_dict
 
 
-def es_search(search_str, from_=0, size=100):
+def es_search(search_str, from_=0, size=100, sentiment=None):
 
     from elasticsearch import Elasticsearch
 
     es = Elasticsearch(['localhost:9200/'])
 
-    query_dict = make_es_query(search_str, from_, size)
+    query_dict = make_es_query(search_str, from_, size, sentiment)
 
     res = es.search(index="documents", body=query_dict)
 
@@ -47,12 +50,13 @@ def es_search(search_str, from_=0, size=100):
 if __name__ == "__main__":
 
 
-    d = es_search("volvo xc90")
+    d = es_search("volvo xc90", sentiment='p')
 
     print(d['hits']['total'])
 
     for hit in d['hits']['hits']:
         print(hit)
+
 
 
 

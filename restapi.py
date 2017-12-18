@@ -9,12 +9,14 @@ import main
 app = Flask(__name__)
 api = Api(app)
 
+import requests
 
 class Search(Resource):
     def get(self):
         search_str = request.args.get('str')
         from_ = request.args.get('from')
         size = request.args.get('size')
+        sentiment = request.args.get('sentiment')
 
         # Parse from
         if from_ is None or int(from_) < 0:
@@ -24,7 +26,12 @@ class Search(Resource):
         if size is None or int(size) < 1:
             size = 100
 
-        res = main.es_search(search_str, from_=from_, size=size)
+        if sentiment is not None:
+            if len(sentiment) == 1:
+                if sentiment not in ['n', 'p', 'v']:
+                    return requests.HTTPError(400) # Wrong parameter send by client
+
+        res = main.es_search(search_str, from_=from_, size=size, sentiment=sentiment)
 
         for hit in res['hits']['hits']:
             print(hit)
