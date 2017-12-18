@@ -8,8 +8,16 @@ def test_connectivity():
 
     print("Attempting a get at endpoint, status code: %s, (200 = good :) )" % r.status_code)
 
+    print("\n")
+
 
 def test_pagination():
+    """Retrives documents from the search image in 3 different ways,
+        1. One-by-One
+        2. All at the same time
+        3. By "smarter" pagination, by 10s and 10s
+
+        Stores the result from each query, and compares the documents by id. """
 
 
     total_size = 100
@@ -123,8 +131,8 @@ def test_search():
     count, matching_count, words_to_match))
     print("...Distribution::")
     print("...", matching_dict)
-    print("...(Summarizes to %s)" % (matching_dict['body'] + matching_dict['title'] + matching_dict['both_body_title']))
-
+    print("...(Summarizes to %s (body+title+both_body_tile))" % (matching_dict['body'] + matching_dict['title'] + matching_dict['both_body_title']))
+    print("\n")
 
 def test_search_sentiment():
 
@@ -141,8 +149,9 @@ def test_search_sentiment():
         data = r.json()
 
 
-        print("...sentiment: %s - Matched total of %s documents\n" %  (sentiment, len(data['hits']['hits'])))
+        print("...sentiment: %s - Matched total of %s documents" %  (sentiment, len(data['hits']['hits'])))
 
+    print("\n")
 
 if __name__ == "__main__":
 
