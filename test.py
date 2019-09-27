@@ -1,10 +1,10 @@
-
-
 import requests
+
+ELASTIC_SEARCH_PATH = "http://127.0.0.1:5002/search"
 
 
 def test_connectivity():
-    r = requests.get("http://127.0.0.1:5002/search?str=volvo")
+    r = requests.get(ELASTIC_SEARCH_PATH + "?str=volvo")
 
     print("Attempting a get at endpoint, status code: %s, (200 = good :) )" % r.status_code)
 
@@ -12,55 +12,49 @@ def test_connectivity():
 
 
 def test_pagination():
-    """Retrives documents from the search image in 3 different ways,
-        1. One-by-One
-        2. All at the same time
-        3. By "smarter" pagination, by 10s and 10s
+    """Retrives documents from the search image in 2 different ways,
+        1. All at the same time
+        2. By "smarter" pagination, by 10s and 10s
 
         Stores the result from each query, and compares the documents by id. """
 
-
-    total_size = 100
+    override_total_size = 1000
     search_str = "volvo"  # Has to match more than total size
 
-    print("Testing pagination of %s documents. search_str = %s" % (total_size, search_str))
+    print("Testing pagination of max %s documents. search_str = %s" % (override_total_size, search_str))
 
     # Getting all in the same query
-    params = {'str': search_str, 'size': total_size, 'from': 0}
-    r = requests.get("http://127.0.0.1:5002/search", params=params)
+    params = {'str': search_str, 'size': override_total_size, 'from': 0}
+    r = requests.get(ELASTIC_SEARCH_PATH, params=params)
     data = r.json()
 
     list_of_hits = data['hits']['hits']
-
-    # Getting all one-by-one
-    list_of_hits2 = []
-    for from_no in range(0, total_size):
-        params = {'str': search_str, 'size': 1, 'from': from_no}
-        r = requests.get("http://127.0.0.1:5002/search", params=params)
-        data = r.json()
-        list_of_hits2.append((data['hits']['hits'][0]))
+    total_num_hits = len(list_of_hits)
 
     # Getting all by pagination
-    list_of_hits3 = []
+    list_of_hits_by_pagination = []
     start_no = 0
-    end_no = total_size
     pagination_size = 10
 
-    while start_no < total_size:
+    while start_no < override_total_size:
         params = {'str': search_str, 'size': pagination_size, 'from': start_no}
-        r = requests.get("http://127.0.0.1:5002/search", params=params)
+        r = requests.get(ELASTIC_SEARCH_PATH, params=params)
         data = r.json()
-        list_of_hits3.extend((data['hits']['hits']))
+        list_of_hits_by_pagination.extend((data['hits']['hits']))
+
+        if len(data['hits']['hits']) == 0: # Stop retrieving more documents when there is no longer any result
+            break
 
         start_no = start_no + pagination_size
 
     count = 0
-    for (item1, item2, item3) in zip(list_of_hits, list_of_hits2, list_of_hits3):
+
+    # Compare the id's of documents, retrived in two different ways
+    for (item1, item2) in zip(list_of_hits, list_of_hits_by_pagination):
         if item1['_id'] == item2['_id']:
-            if item2['_id'] == item3['_id']:
                 count = count + 1
 
-    print("...%s of %s equal when testing pagination." % (count, total_size))
+    print("...%s of %s equal when testing pagination." % (count, total_num_hits))
 
 
 def test_search():
@@ -68,89 +62,53 @@ def test_search():
     print("Testing search with several keywords. Should be present in either BODY, TITLE or both.\n")
     search_str = "volvo xc90"  # Has to match more than total size
 
-    params = {'str': search_str, }
-    r = requests.get("http://127.0.0.1:5002/search", params=params)
+    params = {'str': search_str, 'size': 10000}
+    r = requests.get(ELASTIC_SEARCH_PATH, params=params)
     data = r.json()
 
-    words_to_match = search_str.split()  # split by space
+    words_to_look_for = search_str.split()  # split by space
 
-    count = 0
     matching_count = 0
 
-
-    fields = ['body', 'title']
-    matching_dict = {}
-
-    matching_dict['body'] = 0
-    matching_dict['title'] = 0
-    matching_dict['both_body_title'] = 0
-    matching_dict['none'] = 0
-
     for document in data['hits']['hits']:
-        count = count + 1
         body_text = document['_source']['body']
         title_text = document['_source']['title']
 
-        all_words_in_all_fields = True
-        res = {}
-        for field in fields:
-            res[field] = False
-            text = document['_source'][field]
+        # We expect to find a match in either body, title or both for ANY of the search str's words
+        text = (body_text + " " + title_text).lower()
 
-            all_words_in_field = True # assumption
+        for word in words_to_look_for:
+            if word.lower() in text:
+                matching_count = matching_count + 1
+                break
 
-            for word in words_to_match:
-                if not(word.lower() in text.lower()):
-                    all_words_in_field = False
-
-            res[field] = all_words_in_field
-
-        if res['body'] and res['title']:
-            matching_dict['both_body_title'] += 1
-
-        elif res['body']:
-            matching_dict['body'] += 1
-        elif res['title']:
-            matching_dict['title'] += 1
-        else:
-            matching_dict['none'] += 1
-
-
-        all_words_in_field = True  # default
-
-        for word in words_to_match:
-            if not (word in body_text.lower() or word in title_text.lower()):
-                all_words_in_field = False
-
-        if all_words_in_field:
-            matching_count += 1
-
-
-
-    print("...Total documents matched %s, of which %s contained %s in the BODY text, TITLE text or both." % (
-    count, matching_count, words_to_match))
-    print("...Distribution::")
-    print("...", matching_dict)
-    print("...(Summarizes to %s (body+title+both_body_tile))" % (matching_dict['body'] + matching_dict['title'] + matching_dict['both_body_title']))
-    print("\n")
+    print("We found search_str words present in " + str(matching_count) + " documents")
+    print("Total number of documents matched by ES: " + str(len(data['hits']['hits'])))
 
 
 def test_search_sentiment():
 
     search_str = "volvo xc90"  # Has to match more than total size
-    print("Testing search for a specific sentiment (search_str = %s)" % search_str)
+    sentiment_list = ['n', 'p', 'v', None]
 
-    sentiment_list = ['n','p','v', None]
+    print("Testing search for a specific sentiments")
+    print(sentiment_list)
+    print("search_str = %s" % search_str)
+
+    sentiment_counter = dict()
 
     for sentiment in sentiment_list:
 
-        params = {'str': search_str, 'sentiment': sentiment, 'size': 100}
-        r = requests.get("http://127.0.0.1:5002/search", params=params)
+        params = {'str': search_str, 'sentiment': sentiment, 'size': 1000}
+        r = requests.get(ELASTIC_SEARCH_PATH, params=params)
 
         data = r.json()
 
+        sentiment_counter[sentiment] = len(data['hits']['hits'])
 
-        print("...sentiment: %s - Matched total of %s documents" %  (sentiment, len(data['hits']['hits'])))
+    print("Distribution:")
+    print(sentiment_counter)
+    print("Sum of n, p, v = " + str(sum([sentiment_counter[k] for k in sentiment_counter if k is not None])))
 
     print("\n")
 
@@ -159,21 +117,18 @@ if __name__ == "__main__":
 
     """Tests features of the REST api"""
 
-    #Testing connectivity
+    # Testing connectivity
     test_connectivity()
 
     # The user wants to be able to send in a query string that should be matched against
     # the contents of the title and body fields,
-    #
-    #Matching documents, filters and other result data, should be returned in JSON format
     test_search()
 
 
-    #The user wants to be able to filter on sentiment 
+    # The user wants to be able to filter on sentiment 
     # (i.e only see docs that are negative (v), positive (p),
-    # neutral (n)) or a combination of p,v,n
+    # neutral (n))
     test_search_sentiment()
-
 
     #The service should only return a maximum of 100 docs per response
     # But there should be a way to get the full result list by executing

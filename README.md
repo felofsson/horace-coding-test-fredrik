@@ -1,7 +1,7 @@
 
 
 # REST API for ElasticSearch image in Python
-This project is based on the problem formulation given in the[Meltwater Horace Coding test](https://hub.docker.com/r/meltwater/horace-coding-test/). In that problem, a customer has specified the following requirement on a RESTful API:
+This project is based on the problem formulation given in the [Meltwater Horace Coding test](https://hub.docker.com/r/meltwater/horace-coding-test/). In that problem, a customer has specified the following requirement on a RESTful API:
 
 1. The user wants to be able to send in a *query string* that should be *matched* against the contents of the *title* and *body* fields, 
     - Matching documents, filters and other result data, should be returned in JSON format_
@@ -18,15 +18,15 @@ A Restful API has been implemented in Python, using Flask API and a Python modul
 
 *Results*: 
 - [x] Requirement 1 
-- [x] Requirement 2 (partially)
+- [x] Requirement 2 
 - [x] Requirement 3
 
-Requirement 4 has not been fulfilled. 
+Requirement 4 has not been fulfilled - see outline below.
 
 # Installation 
-1. Install and configure the Docker container according to the orginal project
+1. Install and configure the Docker container according to the original project
 2. Clone/download this project
-3. Install its dependencies found in requirements.txt (perferably in a virtual environment)
+3. Install its dependencies found in requirements.txt (preferably in a virtual environment)
 4. Start the Flask application by running ```restapi.py```
 4. Run ```test.py``` to evaluate. 
 
@@ -60,7 +60,52 @@ The request ```/search?str=volvo&size=10&from=0``` yields the first 10 matching 
 To retrieve the remaining matching documents (11-20), make the request ```/search?str=volvo&size=10&from=10```. 
 
 
-## A note on matching
-The matching is done by finding the search string in EITHER the document title or its body text. If the search string has several words (e. g. "volvo xc90"), documents returned does have at least both of those words in either the title, the body text, or both.
+#  Reflection 2019-09-27
+ Other than focusing on completing requirement 4 (which I have outlined below),
+ here are my reflections on what I would do next:
+ 
+*  Ask for general client feedback. Is it according to expectation? What is their 
+opinion about the quality of the search results? I have developed using variants of the 
+somewhat primitive search string `volvo xc90` -- quite a narrow search space 
+in the search image. 
 
-When searching by sentiment, the resulting document list is not correct (hence requirement 3 only partially fulfilled). The error most likely lies in the logic sent to the ElasticSearch image. Example: "volvo xc90" yields 42 hits. Forcing the sentiment to be positive ('p'), more than 100 hits are retrived. By inspection, these seem to have only "volvo" (only one of the two words) and a positive sentiment.  
+* Verify client's expected behaviour using a search string consisting 
+of several words. Is the requirement that _all_ be present or is it 
+enough with one of them (and the more the merrier)? 
+If _all_ , can the title and body be considered to be a combined in the search?
+(the current behaviour is not enforcing all words in `search_str` to be present in documents)
+
+* Verify that all documents can only have one sentiment.
+
+* Double-check with colleague that pagination-implementation
+_reduces_ the load for queries requesting many documents. 
+(In the current implementation I presume ES is smart enough to have 
+cached the result for document 1-10 when queried for document 11-20 ...)
+
+*  Improve error handling/error messages in the REST-API due to 
+invalid strings/inputs. Basically make the api more robust to user input.
+
+### Outline solution requirement 4 
+
+>_4. The user wants to be able to get back the *top N values from the keyPhrases field* for the documents matching the query, so he or she can make a word cloud._  
+
+
+Add an additional parameter to the REST API - `N (int)`. Build on the 
+existing algorithm in `elastic_horace_coding_test`:
+
+
+```
+res = es.search(index="documents", body=query_dict)   # current search function, in body & title
+ 
+If N is not None:
+   Parse documents in res:
+       Get the keyPhrases per document  -> dict
+   
+   Sort dict by occurrences,
+   Get top N frequent words -> topNPhrases
+   
+   Append topNPhrases to the json/dict-object res
+   
+
+return res   # current return-statment
+```
